@@ -1509,6 +1509,11 @@ bool TWPartition::Wipe_EXT23(string File_System) {
 }
 
 bool TWPartition::Wipe_EXT4() {
+	Find_Actual_Block_Device();
+	if (!Is_Present) {
+		LOGERR("Block device not present, cannot wipe %s.\n", Display_Name.c_str());
+		return false;
+	}
 	if (!UnMount(true))
 		return false;
 
@@ -1727,10 +1732,6 @@ bool TWPartition::Wipe_Data_Without_Wiping_Media() {
 			}
 		}
 		closedir(d);
-
-		#ifdef HAVE_SELINUX
-		perms.fixDataInternalContexts();
-		#endif
 
 		gui_print("Done.\n");
 		return true;
@@ -2071,9 +2072,9 @@ void TWPartition::Recreate_Media_Folder(void) {
 		PartitionManager.Mount_By_Path(Symlink_Mount_Point, true);
 		LOGINFO("Recreating /data/media folder.\n");
 		mkdir("/data/media", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-		#ifdef HAVE_SELINUX
+#ifdef HAVE_SELINUX
 		perms.fixDataInternalContexts();
-		#endif
+#endif
 		// Toggle mount to ensure that "internal sdcard" gets mounted
 		PartitionManager.UnMount_By_Path(Symlink_Mount_Point, true);
 		PartitionManager.Mount_By_Path(Symlink_Mount_Point, true);
